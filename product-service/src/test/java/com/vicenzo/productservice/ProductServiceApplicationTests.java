@@ -71,7 +71,6 @@ class ProductServiceApplicationTests {
         return ProductRequest.builder()
                 .name("Iphone 13")
                 .description("iPhone 13")
-                .skuCode("212121")
                 .price(BigDecimal.valueOf(1200))
                 .build();
 
