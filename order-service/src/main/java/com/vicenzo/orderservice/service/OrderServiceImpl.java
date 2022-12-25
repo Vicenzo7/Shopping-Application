@@ -3,11 +3,13 @@ package com.vicenzo.orderservice.service;
 import com.vicenzo.orderservice.dto.InventoryResponse;
 import com.vicenzo.orderservice.dto.OrderLineItemsDto;
 import com.vicenzo.orderservice.dto.OrderRequest;
+import com.vicenzo.orderservice.event.OrderPlacedEvent;
 import com.vicenzo.orderservice.model.Order;
 import com.vicenzo.orderservice.model.OrderLineItems;
 import com.vicenzo.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -23,6 +25,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
+    private final KafkaTemplate<String,OrderPlacedEvent> kafkaTemplate;
 
     @Override
     public String placeOrder(OrderRequest orderRequest) {
@@ -51,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
             boolean allProductsInStock = Arrays.stream(inventoryResponsArray).allMatch(InventoryResponse::isInStock);
             if (allProductsInStock) {
                 orderRepository.save(order);
+                kafkaTemplate.send("notificationTopic",new OrderPlacedEvent(order.getOrderNumber()));
                 return "Order placed Successfully";
             } else {
                 throw new IllegalArgumentException("Product not in stock,please try again later");
