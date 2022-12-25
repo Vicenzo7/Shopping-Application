@@ -25,7 +25,7 @@ public class OrderServiceImpl implements OrderService {
     private final WebClient.Builder webClientBuilder;
 
     @Override
-    public void placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
 
@@ -51,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
             boolean allProductsInStock = Arrays.stream(inventoryResponsArray).allMatch(InventoryResponse::isInStock);
             if (allProductsInStock) {
                 orderRepository.save(order);
+                return "Order placed Successfully";
             } else {
                 throw new IllegalArgumentException("Product not in stock,please try again later");
             }
